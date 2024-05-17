@@ -56,11 +56,15 @@ function onWindowResize() {
 function animate() {
 	requestAnimationFrame(animate);
 	if (model) {
-		model.rotation.y += 0.01; // Obrót modelu
+		model.rotation.y += 0.00; // Obrót modelu
 	}
 	controls.update();
 	renderer.render(scene, camera);
 }
+
+
+
+
 
 init();
 animate();
