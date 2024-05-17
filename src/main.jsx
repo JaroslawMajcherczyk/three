@@ -1,26 +1,66 @@
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+let scene, camera, renderer, model, controls;
 
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize( window.innerWidth, window.innerHeight );
-document.body.appendChild( renderer.domElement );
+function init() {
+	// Scena
+	scene = new THREE.Scene();
 
-const geometry = new THREE.BoxGeometry( 1, 1, 1 );
-const material = new THREE.MeshBasicMaterial( { color: 0x0000ff } );
-const cube = new THREE.Mesh( geometry, material );
-scene.add( cube );
+	// Kamera
+	camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+	camera.position.set(0, 1.6, 3); // Ustawienie pozycji kamery
 
-camera.position.z = 5;
+	// Renderer
+	renderer = new THREE.WebGLRenderer({ antialias: true });
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	document.body.appendChild(renderer.domElement);
 
-function animate() {
-	requestAnimationFrame( animate );
+	// Oświetlenie
+	const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+	scene.add(ambientLight);
 
-	cube.rotation.x += 0.01;
-	cube.rotation.y += 0.01;
+	const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+	directionalLight.position.set(1, 1, 0).normalize();
+	scene.add(directionalLight);
 
-	renderer.render( scene, camera );
+	// Kontrole
+	controls = new OrbitControls(camera, renderer.domElement);
+	controls.update();
+
+	// Ładowanie modelu GLTF
+	const loader = new GLTFLoader();
+	loader.load(
+		'src/assets/gltf/potted_plant_01_4k.gltf', // Ścieżka do pliku GLTF
+		function (gltf) {
+			model = gltf.scene;
+			scene.add(model);
+		},
+		undefined,
+		function (error) {
+			console.error(error);
+		}
+	);
+
+	// Obsługa zmiany rozmiaru okna
+	window.addEventListener('resize', onWindowResize, false);
 }
 
+function onWindowResize() {
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+	renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function animate() {
+	requestAnimationFrame(animate);
+	if (model) {
+		model.rotation.y += 0.01; // Obrót modelu
+	}
+	controls.update();
+	renderer.render(scene, camera);
+}
+
+init();
 animate();
